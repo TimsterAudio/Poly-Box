@@ -6,9 +6,9 @@ Poly Box aims at the sound and the playing of a modern five-voice SEM-style poly
 
 | Step | What | State |
 |---|---|---|
-| 1 | One voice over MIDI: oscillators, the SEM filter, envelopes; standalone and CLAP | Done, not yet released |
-| 2 | Five voices: voice assignment (reuse the oldest released voice, unison), Vintage (per-voice drift and slop), glide, LFOs and the modulation routings, aftertouch and mod wheel | Next |
-| 3 | The arpeggiator and the 64-step sequencer (below) | |
+| 1 | One voice over MIDI: oscillators, the SEM filter, envelopes; standalone and CLAP | Done |
+| 2 | Five voices: Poly/Mono/Unison voice assignment, Vintage, glide, stereo spread, aux envelope, two LFOs, a six-slot modulation matrix | Done |
+| 3 | The arpeggiator and the 64-step sequencer (below) | Next |
 | 4 | The Box panel, in TAW-Panel's Jupiter look, with an on-screen keyboard and the computer keyboard as keys | |
 | 5 | Effects (chorus, delay, reverb in the spirit of the hardware's), presets, AU through clap-wrapper for Logic, release builds for Linux, Windows and macOS | |
 
@@ -32,8 +32,13 @@ Poly Box aims at the sound and the playing of a modern five-voice SEM-style poly
 
 Both sit in front of the voices as note processors, so they play the synth exactly as hands would.
 
+## Back burner
+
+- **MIDI beyond notes** (the user's call, 2026-11-03: not needed yet). Notes and pitch bend already work; still to come: mod wheel and aftertouch as modulation sources, the sustain pedal, velocity curves, MIDI learn for the knobs.
+- **Licensing.** Poly Box is for the user's own use for now, so VST3 is built by default. nih-plug's VST3 bindings are GPLv3: if it's ever shared, either publish the source under the GPL or drop to CLAP + AU + standalone (or clap-wrapper's VST3).
+
 ## Things to settle on the way
 
 - **The panel's egui.** nih-plug's egui adapter (`nih_plug_egui`) is on egui 0.31; TAW-Panel is on 0.36. Step 4 needs one of: our own small baseview + egui 0.36 glue (preferred, keeps the panel crate as it is), or a TAW-Panel build on an older egui.
-- **VST3 is GPL.** nih-plug's VST3 bindings are GPLv3, so a VST3 build is GPLv3; that's why it's behind the `vst3` feature. CLAP and the standalone aren't affected. Decide before the first release whether to ship VST3 (and publish the source), or ship CLAP + AU + standalone only, or wrap the CLAP with clap-wrapper's VST3 (MIT, built against Steinberg's now-MIT SDK).
-- **Oversampling.** The filter's saturators run at the host rate. If drive at high resonance sounds gritty in the top octave, run the voice at 2x.
+- **Oversampling.** The filter's saturators run at the host rate. If drive at high resonance sounds gritty in the top octave, run the voices at 2x.
+- **Tempo-synced LFOs** come with the arpeggiator's clock in step 3.

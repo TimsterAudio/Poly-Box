@@ -8,14 +8,13 @@ A five-voice analog-style polysynth in the Timster's Audio Works **Box** family 
 - **Nothing allocates or locks on the audio thread.** `process()` and everything under `src/dsp` run per sample; fixed-size arrays, no `Vec` growth, no `String`.
 - **Parameter ids are forever.** They're saved in hosts' projects: add parameters, never rename or reuse an id.
 - **`src/dsp` stays free of nih-plug**, so it can be tested and rendered offline (`examples/render.rs`).
-- **VST3 stays behind the `vst3` feature** until the licence question in ROADMAP.md is settled.
+- **For the user's own use for now.** VST3 is built by default (its bindings are GPLv3); ROADMAP.md's back burner says what to do before sharing it.
 
 ## Checks before pushing
 
 ```sh
 cargo fmt --check
 cargo clippy --all-targets -- -D warnings
-cargo clippy --all-targets --features vst3 -- -D warnings
 cargo test
 cargo clippy --target x86_64-pc-windows-gnu -- -D warnings
 ```
@@ -26,7 +25,7 @@ For anything audible, render the demo and look at a spectrogram of it (aliasing 
 cargo run --release --example render -- demo.wav
 ```
 
-Building the plug-in: `cargo xtask bundle poly-box --release` (CLAP in `target/bundled/`). The standalone is `target/release/poly-box`; `--help` lists the audio and MIDI options.
+Building the plug-in: `cargo xtask bundle poly-box --release` (CLAP and VST3 in `target/bundled/`). The standalone is `target/release/poly-box`; `--help` lists the audio and MIDI options.
 
 On Linux the build needs `libasound2-dev`, `libjack-jackd2-dev`, `libx11-xcb-dev`, `libxcursor-dev` and `libgl-dev`. The editor window needs a real OpenGL display: under Xvfb, baseview can't find a matching framebuffer config, so it can't be screenshotted in a cloud session.
 
