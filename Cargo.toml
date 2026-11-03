@@ -1,0 +1,37 @@
+[package]
+name = "poly-box"
+version = "0.1.0"
+edition = "2021"
+description = "A five-voice analog-style polysynth in the Box family, after the Oberheim SEM sound"
+authors = ["Timster's Audio Works"]
+publish = false
+
+[workspace]
+members = ["xtask"]
+
+[lib]
+# cdylib for the plug-in bundles, lib for the standalone binary and tests.
+crate-type = ["cdylib", "lib"]
+
+[[bin]]
+name = "poly-box"
+path = "src/main.rs"
+
+[features]
+default = []
+# VST3 export. Off by default: nih-plug's VST3 bindings are GPLv3, so turning
+# this on makes the built plug-in GPLv3. CLAP and the standalone are not affected.
+vst3 = ["nih_plug/vst3"]
+
+[dependencies]
+nih_plug = { git = "https://github.com/robbert-vdh/nih-plug", rev = "de421011f41a6d10fc8c7a6084e4f4dee0143683", default-features = false, features = ["standalone"] }
+nih_plug_egui = { git = "https://github.com/robbert-vdh/nih-plug", rev = "de421011f41a6d10fc8c7a6084e4f4dee0143683" }
+
+[profile.release]
+lto = "thin"
+strip = "symbols"
+
+[profile.profiling]
+inherits = "release"
+debug = true
+strip = "none"
