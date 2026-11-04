@@ -5,7 +5,9 @@
 
 // nih-plug's `nih_export_vst3!` expands to a macro with a trailing semicolon
 // that newer compilers warn about (rust-lang/rust#79813); it's in their code,
-// not ours, so CI's -D warnings mustn't fail on it.
+// not ours, so CI's -D warnings mustn't fail on it. Older compilers don't
+// know the lint's name, hence `unknown_lints` too.
+#![allow(unknown_lints)]
 #![allow(semicolon_in_expressions_from_non_local_macros)]
 
 use nih_plug::prelude::*;
