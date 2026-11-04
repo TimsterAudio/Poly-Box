@@ -19,10 +19,12 @@ pub enum ModSource {
     Key,
     /// A random value picked when the note starts, -1..1.
     Random,
+    /// The mod wheel, 0..1.
+    ModWheel,
 }
 
 impl ModSource {
-    pub const COUNT: usize = 9;
+    pub const COUNT: usize = 10;
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

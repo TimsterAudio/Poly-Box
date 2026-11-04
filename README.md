@@ -4,13 +4,17 @@ A five-voice analog-style polysynth from Timster's Audio Works, after the sound 
 
 For Linux, Windows and macOS, as a standalone app and a CLAP or VST3 plug-in.
 
-**Where it is:** step 2 of [ROADMAP.md](ROADMAP.md) is done: five voices (poly, mono, unison), Vintage, glide, two LFOs and a modulation matrix. The arpeggiator and sequencer are next.
+An app with a hardware front panel (Linux, Windows and macOS), plus CLAP and VST3 plug-ins.
+
+![The Poly Box panel, a C major chord held](docs/panel.png)
+
+**Where it is:** five voices (poly, mono, unison), Vintage, glide, two LFOs, a modulation matrix and the front panel are done (steps 1, 2 and 4 of [ROADMAP.md](ROADMAP.md)). The arpeggiator and sequencer are next.
 
 ## Try it
 
 ```sh
 cargo run --release --example render -- demo.wav     # hear it without an audio device
-cargo build --release && ./target/release/poly-box     # play it with the computer keys: A W S E D F T G Y H U J K O L P
+cargo run --release -p poly-box-app                  # the instrument: play it with A W S E D F T G Y H U J K O L P
 cargo xtask bundle poly-box --release                # CLAP and VST3 plug-ins in target/bundled/
 ```
 

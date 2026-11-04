@@ -7,18 +7,15 @@ authors = ["Timster's Audio Works"]
 publish = false
 
 [workspace]
-members = ["xtask"]
+members = ["engine", "app", "xtask"]
 
 [lib]
-# cdylib for the plug-in bundles, lib for the standalone binary and tests.
+# cdylib for the plug-in bundles, lib for the offline renderer and tests.
 crate-type = ["cdylib", "lib"]
 
-[[bin]]
-name = "poly-box"
-path = "src/main.rs"
-
 [dependencies]
-nih_plug = { git = "https://github.com/robbert-vdh/nih-plug", rev = "de421011f41a6d10fc8c7a6084e4f4dee0143683", default-features = false, features = ["standalone", "vst3"] }
+nih_plug = { git = "https://github.com/robbert-vdh/nih-plug", rev = "de421011f41a6d10fc8c7a6084e4f4dee0143683", default-features = false, features = ["vst3"] }
+poly-box-engine = { path = "engine" }
 nih_plug_egui = { git = "https://github.com/robbert-vdh/nih-plug", rev = "de421011f41a6d10fc8c7a6084e4f4dee0143683" }
 
 [profile.release]
@@ -30,7 +27,3 @@ inherits = "release"
 debug = true
 strip = "none"
 
-[dev-dependencies]
-# For examples/preview.rs: the plug-in's window without a host. Must stay on
-# the same egui as nih_plug_egui (0.31).
-eframe = { version = "0.31", default-features = false, features = ["glow", "default_fonts", "x11", "wayland"] }

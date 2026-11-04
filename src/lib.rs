@@ -7,9 +7,12 @@ use nih_plug::prelude::*;
 use nih_plug_egui::{create_egui_editor, EguiState};
 use std::sync::Arc;
 
-pub mod dsp;
+/// The engine, under the name the plug-in has always used for it.
+pub use poly_box_engine as dsp;
+
 pub mod editor;
 
+use dsp::keys::{KeyBridge, KeyPresses, Live};
 use dsp::{LfoSettings, LfoShape, ModDest, ModSlot, ModSource, Patch, Synth, VoiceMode, MOD_SLOTS};
 
 /// Pitch bend range, in semitones each way.
@@ -19,8 +22,8 @@ pub struct PolyBox {
     params: Arc<PolyBoxParams>,
     synth: Synth,
     /// Shared with the window: the keys it plays and the lights it shows.
-    live: Arc<editor::Live>,
-    keys: editor::KeyBridge,
+    live: Arc<Live>,
+    keys: KeyBridge,
 }
 
 fn footage(octave: i32) -> String {
@@ -205,6 +208,9 @@ enum SourceParam {
     #[id = "rand"]
     #[name = "Random per Note"]
     Random,
+    #[id = "mwheel"]
+    #[name = "Mod Wheel"]
+    ModWheel,
 }
 
 impl From<SourceParam> for ModSource {
@@ -219,6 +225,7 @@ impl From<SourceParam> for ModSource {
             SourceParam::Velocity => ModSource::Velocity,
             SourceParam::Key => ModSource::Key,
             SourceParam::Random => ModSource::Random,
+            SourceParam::ModWheel => ModSource::ModWheel,
         }
     }
 }
@@ -579,8 +586,8 @@ impl Default for PolyBox {
         Self {
             params: Arc::new(PolyBoxParams::default()),
             synth: Synth::new(48_000.0),
-            live: Arc::new(editor::Live::default()),
-            keys: editor::KeyBridge::default(),
+            live: Arc::new(Live::default()),
+            keys: KeyBridge::default(),
         }
     }
 }
@@ -686,7 +693,7 @@ impl Plugin for PolyBox {
         let live = self.live.clone();
         create_egui_editor(
             self.params.editor_state.clone(),
-            editor::Keyboard::default(),
+            KeyPresses::default(),
             |_, _| {},
             move |ctx, setter, keyboard| {
                 editor::draw(ctx, params.clone(), setter, &live, keyboard);
@@ -717,7 +724,7 @@ impl Plugin for PolyBox {
     ) -> ProcessStatus {
         let block = self.block_patch();
         self.synth.set_block(&block);
-        self.keys.take_window_keys(&self.live, &mut self.synth);
+        self.keys.take_window(&self.live, &mut self.synth);
 
         let mut next_event = context.next_event();
         for (i, mut frame) in buffer.iter_samples().enumerate() {
@@ -733,6 +740,7 @@ impl Plugin for PolyBox {
                     NoteEvent::MidiPitchBend { value, .. } => {
                         self.synth.set_bend((value - 0.5) * 2.0 * BEND_RANGE);
                     }
+                    NoteEvent::MidiCC { cc: 1, value, .. } => self.synth.set_mod_wheel(value),
                     _ => {}
                 }
                 next_event = context.next_event();

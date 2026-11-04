@@ -9,7 +9,7 @@ Poly Box aims at the sound and the playing of a modern five-voice SEM-style poly
 | 1 | One voice over MIDI: oscillators, the SEM filter, envelopes; standalone and CLAP | Done |
 | 2 | Five voices: Poly/Mono/Unison voice assignment, Vintage, glide, stereo spread, aux envelope, two LFOs, a six-slot modulation matrix | Done |
 | 3 | The arpeggiator and the 64-step sequencer (below) | Next |
-| 4 | The Box panel, in TAW-Panel's Jupiter look (the on-screen and computer keyboards and the voice lights came early, on 2026-11-04, so it could be played without MIDI) | |
+| 4 | The Box panel, in TAW-Panel's Jupiter look, as an app with its own sound | Done (2026-11-04, before step 3, at the user's request) |
 | 5 | Effects (chorus, delay, reverb in the spirit of the hardware's), presets, AU through clap-wrapper for Logic, release builds for Linux, Windows and macOS | |
 
 ## Arpeggiator (step 3)

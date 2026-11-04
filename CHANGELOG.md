@@ -2,10 +2,15 @@
 
 ## Unreleased
 
+### Changed
+- The standalone is now the app in `app/` (the old nih-plug standalone and `examples/preview.rs` are gone); the engine moved to its own crate, `engine/`, shared by the app, the plug-ins and the renderer.
+
 ### Added
-- Play it without a MIDI keyboard. The window has a six-octave keyboard (C1 to C7) to play with the mouse (lower on a key is louder; drag across keys), and the computer keys play it too: A W S E D F T G Y H U J K O L P from the shown octave, Z / X octave down / up, C / V velocity down / up, Esc lets go of everything. Keys held from MIDI light up as well.
+- **The panel.** Poly Box is now an app with a hardware front panel in the Box family's Jupiter look (TAW-Panel 0.5.0), drawn after Drone Box: wooden end cheeks; a top strip with the badge and logo, the red display (the last control touched and its value, the voice mode, the keys' octave), five voice lights with the note each plays, an output meter, Volume, the Black / Silver and Colour / Pointer switches and All Off; then Osc 1, Osc 2, Mixer, Filter, Filter Env and Amp Env; then Voice, LFO 1 and 2 (with a light blinking at the rate), Aux Env and the Mod Matrix; and a 49-key keyboard (C2 to C6) with a pitch wheel that springs back, a mod wheel, and octave keys. Faders for levels, envelopes, cutoff, resonance and LFO rates; knobs coloured by what they do; every control has its red readout; double-click resets.
+- The app makes its own sound on the computer's default output (cpal), and remembers the sound, the panel look and the keys' octave between runs (in the family's data folder). With no audio device, the panel still plays silently.
+- The mod wheel, as a modulation source; the fourth mod slot starts with it opening the filter. MIDI CC 1 drives it in the plug-ins.
+- Play it without a MIDI keyboard. The plug-in window has a six-octave keyboard (C1 to C7) to play with the mouse (lower on a key is louder; drag across keys), and the computer keys play it too: A W S E D F T G Y H U J K O L P from the shown octave, Z / X octave down / up, C / V velocity down / up, Esc lets go of everything. Keys held from MIDI light up as well.
 - Five voice lights across the top: lit while a voice's key is down, dim while it rings out, with the note it's playing, so you can watch notes rotate round the voices, steal, and stack in unison.
-- `examples/preview.rs`: the window without a host or audio device (the synth runs silently behind it), which also works under Xvfb.
 - Step 2 of the roadmap: five voices.
   - Voice modes: Poly (notes rotate round the voices; a free voice first, then the one released longest ago, then the one held longest), Mono (last-note priority) and Unison (all five on one note, detuned symmetrically up to 50 cents).
   - Glide, from each voice's last pitch (RC-style).

@@ -143,6 +143,8 @@ pub struct Shared {
     pub lfo2: f32,
     /// Semitones.
     pub bend: f32,
+    /// 0..1.
+    pub mod_wheel: f32,
 }
 
 fn note_to_hz(note: f32) -> f32 {
@@ -331,6 +333,7 @@ impl Voice {
         src[ModSource::Velocity as usize] = self.velocity;
         src[ModSource::Key as usize] = (self.note - 60.0) / 60.0;
         src[ModSource::Random as usize] = self.random;
+        src[ModSource::ModWheel as usize] = shared.mod_wheel;
         let m = route(&p.mods, &src);
         let md = |d: ModDest| m[d as usize];
 

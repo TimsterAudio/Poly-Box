@@ -1,0 +1,20 @@
+[package]
+name = "poly-box-app"
+version = "0.1.0"
+edition = "2021"
+description = "Poly Box: the instrument, as an app with its own panel and sound"
+publish = false
+
+[[bin]]
+name = "poly-box"
+path = "src/main.rs"
+
+[dependencies]
+poly-box-engine = { path = "../engine" }
+# The family's panel (the Jupiter look). Pinned to TAW-Panel 0.5.0.
+taw-panel = { git = "https://github.com/TimsterAudio/TAW-Panel", rev = "41b1742396d58f261228f124b38290e3e168e1d9" }
+egui = "0.36"
+eframe = { version = "0.36", default-features = false, features = ["glow", "default_fonts", "wayland", "x11"] }
+cpal = "0.16"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

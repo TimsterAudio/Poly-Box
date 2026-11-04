@@ -81,6 +81,7 @@ pub struct Synth {
     lfo1: Lfo,
     lfo2: Lfo,
     bend: f32,
+    mod_wheel: f32,
     /// DC blocker per channel (last input, last output), as a hardware
     /// output's coupling capacitor.
     dc: [(f32, f32); 2],
@@ -101,6 +102,7 @@ impl Synth {
             lfo1: Lfo::new(0x1234_5678),
             lfo2: Lfo::new(0x8765_4321),
             bend: 0.0,
+            mod_wheel: 0.0,
             dc: [(0.0, 0.0); 2],
             // About 5 Hz.
             dc_pole: (-2.0 * std::f32::consts::PI * 5.0 / sample_rate).exp(),
@@ -132,6 +134,15 @@ impl Synth {
     /// Semitones.
     pub fn set_bend(&mut self, semitones: f32) {
         self.bend = semitones;
+    }
+
+    pub fn bend(&self) -> f32 {
+        self.bend
+    }
+
+    /// 0..1.
+    pub fn set_mod_wheel(&mut self, v: f32) {
+        self.mod_wheel = v.clamp(0.0, 1.0);
     }
 
     /// Take the settings that change at most once a block. A change of voice
@@ -273,6 +284,7 @@ impl Synth {
             lfo1: self.lfo1.next(p.lfo1, self.sample_rate),
             lfo2: self.lfo2.next(p.lfo2, self.sample_rate),
             bend: self.bend,
+            mod_wheel: self.mod_wheel,
         };
         let (mut l, mut r) = (0.0, 0.0);
         for v in &mut self.voices {

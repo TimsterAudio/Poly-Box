@@ -1,0 +1,8 @@
+[package]
+name = "poly-box-engine"
+version = "0.1.0"
+edition = "2021"
+description = "Poly Box's sound engine, shared by the app and the plug-ins"
+publish = false
+
+[dependencies]
