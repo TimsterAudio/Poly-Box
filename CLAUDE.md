@@ -33,6 +33,14 @@ The plug-ins: `cargo xtask bundle poly-box --release` (CLAP and VST3 in `target/
 
 On Linux the build needs `libasound2-dev`, `libjack-jackd2-dev`, `libx11-xcb-dev`, `libxcursor-dev` and `libgl-dev`.
 
+## Releasing a version
+
+1. Move Unreleased in CHANGELOG.md into `## X.Y.Z – YYYY-MM-DD`, and bump `version` in `app/Cargo.toml` (and the root and `engine/` Cargo.toml, which move together).
+2. Merge to `main`. The Release workflow (`.github/workflows/release.yml`) sees a version with no GitHub release yet, builds Linux (x86_64), Windows (x86_64) and macOS (universal) packages with `scripts/package.sh`, and publishes release `vX.Y.Z` with that CHANGELOG section as its notes. Each package holds the app, the CLAP and VST3 plug-ins, and a README.
+3. Test packages of a branch: Actions > Release > Run workflow on that branch (artifacts only, no release).
+
+The builds aren't signed: Windows warns about an unknown publisher and macOS needs right-click > Open the first time (the README in each package says so).
+
 ## Conventions
 
 Like the rest of the family: feature branches, `main` always works, CHANGELOG.md with an Unreleased section.

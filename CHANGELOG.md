@@ -2,27 +2,22 @@
 
 ## Unreleased
 
-### Changed
-- The standalone is now the app in `app/` (the old nih-plug standalone and `examples/preview.rs` are gone); the engine moved to its own crate, `engine/`, shared by the app, the plug-ins and the renderer.
+## 0.1.0 – 2026-11-04
 
-### Added
-- **The panel.** Poly Box is now an app with a hardware front panel in the Box family's Jupiter look (TAW-Panel 0.5.0), drawn after Drone Box: wooden end cheeks; a top strip with the badge and logo, the red display (the last control touched and its value, the voice mode, the keys' octave), five voice lights with the note each plays, an output meter, Volume, the Black / Silver and Colour / Pointer switches and All Off; then Osc 1, Osc 2, Mixer, Filter, Filter Env and Amp Env; then Voice, LFO 1 and 2 (with a light blinking at the rate), Aux Env and the Mod Matrix; and a 49-key keyboard (C2 to C6) with a pitch wheel that springs back, a mod wheel, and octave keys. Faders for levels, envelopes, cutoff, resonance and LFO rates; knobs coloured by what they do; every control has its red readout; double-click resets.
-- The app makes its own sound on the computer's default output (cpal), and remembers the sound, the panel look and the keys' octave between runs (in the family's data folder). With no audio device, the panel still plays silently.
-- The mod wheel, as a modulation source; the fourth mod slot starts with it opening the filter. MIDI CC 1 drives it in the plug-ins.
-- Play it without a MIDI keyboard. The plug-in window has a six-octave keyboard (C1 to C7) to play with the mouse (lower on a key is louder; drag across keys), and the computer keys play it too: A W S E D F T G Y H U J K O L P from the shown octave, Z / X octave down / up, C / V velocity down / up, Esc lets go of everything. Keys held from MIDI light up as well.
-- Five voice lights across the top: lit while a voice's key is down, dim while it rings out, with the note it's playing, so you can watch notes rotate round the voices, steal, and stack in unison.
-- Step 2 of the roadmap: five voices.
-  - Voice modes: Poly (notes rotate round the voices; a free voice first, then the one released longest ago, then the one held longest), Mono (last-note priority) and Unison (all five on one note, detuned symmetrically up to 50 cents).
-  - Glide, from each voice's last pitch (RC-style).
-  - Vintage: each voice has its own fixed tuning, cutoff and envelope-time quirks, and its oscillators drift slowly; 0 makes every voice identical.
-  - Stereo spread: voices placed alternately left and right.
-  - An aux envelope, two LFOs (triangle, sine, saw up, saw down, square, sample & hold, 0.02 to 40 Hz) and a six-slot modulation matrix: sources LFO 1 and 2, the three envelopes, velocity, key and random-per-note; destinations pitch, each oscillator's pitch, shape and level, noise, cutoff, resonance, filter mode, drive, amp and pan. The first three slots come set up at zero for vibrato, PWM and filter wobble.
-  - VST3 alongside CLAP, now built by default.
-- Step 1 of the roadmap: one voice played over MIDI.
-  - Two VCOs, each with one shape control running saw → square → narrow pulse (band-limited with polyBLEP). Osc 1 and osc 2 each have an octave (32' to 2'); osc 2 also has semitones, fine tune and hard sync to osc 1. Noise.
-  - The SEM-style filter: 12 dB/oct state-variable, the mode control sweeps low-pass → notch → high-pass, with a band-pass switch, plus resonance, drive, key tracking, and filter envelope amount and velocity.
-  - Filter and amp ADSR envelopes with analog-style curves; amp velocity.
-  - Last-note priority (a held note comes back), pitch bend ±2 semitones.
-  - CLAP plug-in and a standalone app (JACK or ALSA on Linux, CoreAudio on a Mac, WASAPI on Windows, with MIDI input); VST3 behind the `vst3` feature.
-  - A plain list of the controls as the window, until the Box panel (step 4).
-  - `examples/render.rs`: renders a demo to a WAV without an audio device.
+The first release: a five-voice analog-style polysynth after the SEM sound, as an app with a hardware front panel, plus CLAP and VST3 plug-ins. For Linux, Windows and macOS.
+
+### The panel
+- A front panel in the Box family's Jupiter look (TAW-Panel 0.5.0), after Drone Box: wooden end cheeks; a top strip with the badge and logo, a red display (the last control touched and its value, the voice mode, the keys' octave), five voice lights with the note each plays, an output meter, Volume, the Black / Silver and Colour / Pointer switches and All Off.
+- Sections: Osc 1, Osc 2, Mixer, Filter, Filter Env, Amp Env; Voice, LFO 1, LFO 2, Aux Env and the Mod Matrix. Faders for levels, envelope times, cutoff, resonance and LFO rates; knobs coloured by what they do (blue pitch, green tone, red modulation); a red readout under every control; double-click resets; Shift for fine.
+- A 49-key keyboard (C2 to C6) to play with the mouse (lower on a key is louder) or the computer keys: A W S E D F T G Y H U J K O L P, Z / X octave, C / V velocity, Esc all off. A pitch wheel that springs back and a mod wheel that stays.
+- Remembers the sound, the panel look and the keys' octave between runs.
+
+### The sound
+- Five voices with Poly (notes rotate round the voices), Mono (last-note priority) and Unison (all five, detuned up to 50 cents) modes; glide; Vintage (each voice's own tuning, cutoff and envelope quirks, and slow drift); stereo spread.
+- Two VCOs per voice, each with one shape control from saw through square to a narrow pulse (band-limited), octaves from 32' to 2'; osc 2 with semitones, fine tune and hard sync; noise.
+- The SEM-style 12 dB state-variable filter: the mode control sweeps low-pass, notch, high-pass, with a band-pass switch, resonance, drive, key tracking, and envelope amount and velocity.
+- Filter, amp and aux envelopes with analog-style curves.
+- Two LFOs (triangle, sine, saw up, saw down, square, sample & hold, 0.02 to 40 Hz) and a six-slot modulation matrix: LFOs, envelopes, velocity, key, random-per-note and the mod wheel, to pitch, each oscillator's pitch, shape and level, noise, cutoff, resonance, filter mode, drive, amp and pan.
+
+### The plug-ins
+- CLAP and VST3, with a plain window (every control as a slider, voice lights, and a keyboard for the mouse and computer keys). MIDI notes, pitch bend (±2 semitones) and the mod wheel (CC 1).

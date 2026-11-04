@@ -1,0 +1,122 @@
+name: Release
+
+# When main carries a version that hasn't been released yet, build Poly Box
+# for Linux, Windows and macOS and publish a GitHub release (tag vX.Y.Z)
+# with the downloads. A manual run on any branch builds the packages as
+# workflow artifacts only (test packages), without releasing.
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md', 'docs/**']
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      release: ${{ steps.v.outputs.release }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' app/Cargo.toml | head -1)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF" = "refs/heads/main" ] && ! gh release view "v$version" >/dev/null 2>&1; then
+            echo "release=true" >> "$GITHUB_OUTPUT"
+            echo "Releasing v$version"
+          else
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "v$version is already released (or this isn't main): building only"
+          fi
+
+  build:
+    needs: version
+    if: needs.version.outputs.release == 'true' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 22.04 so the Linux build runs on older distributions too.
+          - { os: ubuntu-22.04, platform: linux-x86_64 }
+          - { os: windows-latest, platform: windows-x86_64 }
+          # One universal app for Apple silicon and Intel Macs.
+          - { os: macos-14, platform: macos-universal }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: release-${{ matrix.platform }}
+      - name: Linux libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libjack-jackd2-dev libx11-xcb-dev libxcursor-dev libgl-dev libxkbcommon-dev
+      - run: cargo test --workspace
+      - name: Build
+        if: runner.os != 'macOS'
+        run: |
+          cargo build --release -p poly-box-app
+          cargo xtask bundle poly-box --release
+      - name: Build (universal)
+        if: runner.os == 'macOS'
+        run: |
+          rustup target add x86_64-apple-darwin aarch64-apple-darwin
+          cargo build --release -p poly-box-app --target x86_64-apple-darwin
+          cargo build --release -p poly-box-app --target aarch64-apple-darwin
+          mkdir -p target/release
+          lipo -create -output target/release/poly-box \
+            target/x86_64-apple-darwin/release/poly-box \
+            target/aarch64-apple-darwin/release/poly-box
+          cargo xtask bundle-universal poly-box --release
+      - name: Package
+        shell: bash
+        run: scripts/package.sh ${{ matrix.platform }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: poly-box-${{ needs.version.outputs.version }}-${{ matrix.platform }}
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+          if-no-files-found: error
+
+  release:
+    needs: [version, build]
+    if: needs.version.outputs.release == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: packages
+          merge-multiple: true
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          # The notes are this version's section of CHANGELOG.md.
+          awk -v v="$VERSION" '
+            $0 ~ "^## " v " " { on = 1; next }
+            on && /^## / { exit }
+            on { print }
+          ' CHANGELOG.md > notes.md
+          ls -l packages
+          gh release create "v$VERSION" packages/* \
+            --target "$GITHUB_SHA" \
+            --title "Poly Box $VERSION" \
+            --notes-file notes.md

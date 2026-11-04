@@ -1,6 +1,9 @@
 //! Poly Box, the app: the instrument's panel in its own window, with its own
 //! sound out of the computer's default audio device.
 
+// No console window behind the app on Windows (debug builds keep it, for messages).
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod audio;
 mod controls;
 mod keyboard;
