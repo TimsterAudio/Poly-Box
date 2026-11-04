@@ -3,6 +3,11 @@
 //! The sound engine lives in [`dsp`]; this file is the plug-in around it: the
 //! parameters, note events and the (for now plain) window.
 
+// nih-plug's `nih_export_vst3!` expands to a macro with a trailing semicolon
+// that newer compilers warn about (rust-lang/rust#79813); it's in their code,
+// not ours, so CI's -D warnings mustn't fail on it.
+#![allow(semicolon_in_expressions_from_non_local_macros)]
+
 use nih_plug::prelude::*;
 use nih_plug_egui::{create_egui_editor, EguiState};
 use std::sync::Arc;
