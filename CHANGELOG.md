@@ -4,6 +4,8 @@
 
 ## 0.1.0 – 2026-11-04
 
+Commit `617aefb22859f75f8cddcae0e4f52541be3d7b9a`, release [v0.1.0](https://github.com/TimsterAudio/poly-box/releases/tag/v0.1.0).
+
 The first release: a five-voice analog-style polysynth after the SEM sound, as an app with a hardware front panel, plus CLAP and VST3 plug-ins. For Linux, Windows and macOS.
 
 ### The panel
