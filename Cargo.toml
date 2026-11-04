@@ -29,3 +29,8 @@ strip = "symbols"
 inherits = "release"
 debug = true
 strip = "none"
+
+[dev-dependencies]
+# For examples/preview.rs: the plug-in's window without a host. Must stay on
+# the same egui as nih_plug_egui (0.31).
+eframe = { version = "0.31", default-features = false, features = ["glow", "default_fonts", "x11", "wayland"] }

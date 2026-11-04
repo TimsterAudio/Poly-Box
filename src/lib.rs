@@ -4,10 +4,11 @@
 //! parameters, note events and the (for now plain) window.
 
 use nih_plug::prelude::*;
-use nih_plug_egui::{create_egui_editor, egui, widgets, EguiState};
+use nih_plug_egui::{create_egui_editor, EguiState};
 use std::sync::Arc;
 
 pub mod dsp;
+pub mod editor;
 
 use dsp::{LfoSettings, LfoShape, ModDest, ModSlot, ModSource, Patch, Synth, VoiceMode, MOD_SLOTS};
 
@@ -17,6 +18,9 @@ const BEND_RANGE: f32 = 2.0;
 pub struct PolyBox {
     params: Arc<PolyBoxParams>,
     synth: Synth,
+    /// Shared with the window: the keys it plays and the lights it shows.
+    live: Arc<editor::Live>,
+    keys: editor::KeyBridge,
 }
 
 fn footage(octave: i32) -> String {
@@ -443,7 +447,7 @@ impl Default for PolyBoxParams {
             (SourceParam::Off, DestParam::Off),
         ];
         Self {
-            editor_state: EguiState::from_size(460, 760),
+            editor_state: EguiState::from_size(820, 760),
 
             voice_mode: EnumParam::new("Voice Mode", VoiceModeParam::Poly),
             unison_detune: FloatParam::new(
@@ -575,6 +579,8 @@ impl Default for PolyBox {
         Self {
             params: Arc::new(PolyBoxParams::default()),
             synth: Synth::new(48_000.0),
+            live: Arc::new(editor::Live::default()),
+            keys: editor::KeyBridge::default(),
         }
     }
 }
@@ -676,22 +682,14 @@ impl Plugin for PolyBox {
     }
 
     fn editor(&mut self, _async_executor: AsyncExecutor<Self>) -> Option<Box<dyn Editor>> {
-        // A plain list of every control until the Box panel arrives (step 4).
         let params = self.params.clone();
+        let live = self.live.clone();
         create_egui_editor(
             self.params.editor_state.clone(),
-            (),
+            editor::Keyboard::default(),
             |_, _| {},
-            move |ctx, setter, _| {
-                egui::CentralPanel::default().show(ctx, |ui| {
-                    ui.heading("Poly Box");
-                    widgets::generic_ui::create(
-                        ui,
-                        params.clone(),
-                        setter,
-                        widgets::generic_ui::GenericSlider,
-                    );
-                });
+            move |ctx, setter, keyboard| {
+                editor::draw(ctx, params.clone(), setter, &live, keyboard);
             },
         )
     }
@@ -708,6 +706,7 @@ impl Plugin for PolyBox {
 
     fn reset(&mut self) {
         self.synth.reset();
+        self.keys.reset();
     }
 
     fn process(
@@ -718,6 +717,7 @@ impl Plugin for PolyBox {
     ) -> ProcessStatus {
         let block = self.block_patch();
         self.synth.set_block(&block);
+        self.keys.take_window_keys(&self.live, &mut self.synth);
 
         let mut next_event = context.next_event();
         for (i, mut frame) in buffer.iter_samples().enumerate() {
@@ -726,8 +726,10 @@ impl Plugin for PolyBox {
                     break;
                 }
                 match event {
-                    NoteEvent::NoteOn { note, velocity, .. } => self.synth.note_on(note, velocity),
-                    NoteEvent::NoteOff { note, .. } => self.synth.note_off(note),
+                    NoteEvent::NoteOn { note, velocity, .. } => {
+                        self.keys.note_on(&mut self.synth, note, velocity)
+                    }
+                    NoteEvent::NoteOff { note, .. } => self.keys.note_off(&mut self.synth, note),
                     NoteEvent::MidiPitchBend { value, .. } => {
                         self.synth.set_bend((value - 0.5) * 2.0 * BEND_RANGE);
                     }
@@ -747,6 +749,7 @@ impl Plugin for PolyBox {
                 *s = r * volume;
             }
         }
+        self.keys.publish(&self.live, &self.synth);
 
         ProcessStatus::KeepAlive
     }

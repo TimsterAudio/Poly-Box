@@ -2,7 +2,7 @@
 //! aux envelopes, glide, the modulation matrix, and the small differences
 //! between voices that Vintage brings out.
 
-use super::env::Adsr;
+use super::env::{Adsr, Stage};
 use super::filter::{Coeffs, SemFilter};
 use super::lfo::LfoSettings;
 use super::modulation::{
@@ -270,6 +270,16 @@ impl Voice {
 
     pub fn is_active(&self) -> bool {
         self.amp_env.is_active()
+    }
+
+    /// The note this voice was last given.
+    pub fn note(&self) -> u8 {
+        self.note as u8
+    }
+
+    /// Whether its key is still down (not yet in its release).
+    pub fn is_gated(&self) -> bool {
+        matches!(self.amp_env.stage(), Stage::Attack | Stage::Decay)
     }
 
     /// The pitch sounding now, in MIDI note numbers, glide included.

@@ -10,7 +10,7 @@ For Linux, Windows and macOS, as a standalone app and a CLAP or VST3 plug-in.
 
 ```sh
 cargo run --release --example render -- demo.wav     # hear it without an audio device
-cargo build --release && ./target/release/poly-box --help
+cargo build --release && ./target/release/poly-box     # play it with the computer keys: A W S E D F T G Y H U J K O L P
 cargo xtask bundle poly-box --release                # CLAP and VST3 plug-ins in target/bundled/
 ```
 

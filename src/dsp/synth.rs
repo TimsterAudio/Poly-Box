@@ -259,6 +259,13 @@ impl Synth {
         self.voices.iter().filter(|v| v.is_active()).count()
     }
 
+    /// What voice `i` is doing: `None` when silent, otherwise its note and
+    /// whether its key is still down.
+    pub fn voice_state(&self, i: usize) -> Option<(u8, bool)> {
+        let v = self.voices.get(i)?;
+        v.is_active().then(|| (v.note(), v.is_gated()))
+    }
+
     /// One stereo sample.
     #[inline]
     pub fn next(&mut self, p: &Patch) -> (f32, f32) {

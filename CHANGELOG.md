@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- Play it without a MIDI keyboard. The window has a six-octave keyboard (C1 to C7) to play with the mouse (lower on a key is louder; drag across keys), and the computer keys play it too: A W S E D F T G Y H U J K O L P from the shown octave, Z / X octave down / up, C / V velocity down / up, Esc lets go of everything. Keys held from MIDI light up as well.
+- Five voice lights across the top: lit while a voice's key is down, dim while it rings out, with the note it's playing, so you can watch notes rotate round the voices, steal, and stack in unison.
+- `examples/preview.rs`: the window without a host or audio device (the synth runs silently behind it), which also works under Xvfb.
 - Step 2 of the roadmap: five voices.
   - Voice modes: Poly (notes rotate round the voices; a free voice first, then the one released longest ago, then the one held longest), Mono (last-note priority) and Unison (all five on one note, detuned symmetrically up to 50 cents).
   - Glide, from each voice's last pitch (RC-style).

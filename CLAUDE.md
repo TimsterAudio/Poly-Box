@@ -27,7 +27,13 @@ cargo run --release --example render -- demo.wav
 
 Building the plug-in: `cargo xtask bundle poly-box --release` (CLAP and VST3 in `target/bundled/`). The standalone is `target/release/poly-box`; `--help` lists the audio and MIDI options.
 
-On Linux the build needs `libasound2-dev`, `libjack-jackd2-dev`, `libx11-xcb-dev`, `libxcursor-dev` and `libgl-dev`. The editor window needs a real OpenGL display: under Xvfb, baseview can't find a matching framebuffer config, so it can't be screenshotted in a cloud session.
+On Linux the build needs `libasound2-dev`, `libjack-jackd2-dev`, `libx11-xcb-dev`, `libxcursor-dev` and `libgl-dev`. The plug-in window needs a real OpenGL display (under Xvfb, baseview finds no sRGB framebuffer config), so to look at the window in a cloud session, run the preview under Xvfb instead: it draws the same `editor::draw` through eframe, with the synth running silently behind it. `xdotool` (keydown, mousedown) plays it:
+
+```sh
+cargo run --release --example preview
+```
+
+The window and the audio thread share `editor::Live` (atomics only); the window never calls into the synth directly.
 
 ## Conventions
 
