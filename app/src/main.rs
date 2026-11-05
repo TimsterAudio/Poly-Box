@@ -11,7 +11,7 @@ mod panel;
 mod settings;
 
 use controls::Values;
-use poly_box_engine::keys::KeyPresses;
+use poly_box_engine::keys::{KeyPresses, Live};
 use std::sync::Arc;
 use taw_panel::frame::fit_to_window;
 use taw_panel::theme::install_fonts;
@@ -79,46 +79,6 @@ impl App {
         self.last_save = self.now;
     }
 
-    /// The computer keyboard: letters play, Z / X octave, C / V velocity, Esc all off.
-    fn handle_keys(&mut self, ctx: &egui::Context) {
-        let live = &self.shared.live;
-        let typing = ctx.egui_wants_keyboard_input();
-        for event in ctx.input(|i| i.events.clone()) {
-            match event {
-                egui::Event::Key {
-                    key,
-                    pressed: true,
-                    repeat: false,
-                    modifiers,
-                    ..
-                } if !typing && !modifiers.ctrl && !modifiers.command && !modifiers.alt => {
-                    if key == egui::Key::Escape {
-                        self.keys.release_all(live);
-                    } else if let Some(c) = letter(key) {
-                        let base = self.keys.base;
-                        self.keys.letter_down(live, c);
-                        if self.keys.base != base {
-                            self.dirty = true;
-                        }
-                    }
-                }
-                egui::Event::Key {
-                    key,
-                    pressed: false,
-                    ..
-                } => {
-                    if let Some(c) = letter(key) {
-                        self.keys.letter_up(live, c);
-                    }
-                }
-                // Keys let go while the window was in the background never
-                // arrive, so let go of everything when it loses focus.
-                egui::Event::WindowFocused(false) => self.keys.release_all(live),
-                _ => {}
-            }
-        }
-    }
-
     fn update_meter(&mut self, dt: f32) {
         let peaks = self.shared.take_peaks();
         for (shown, peak) in self.meter_db.iter_mut().zip(peaks) {
@@ -127,6 +87,50 @@ impl App {
             *shown = db.max(*shown - 24.0 * dt);
         }
     }
+}
+
+/// The computer keyboard: letters play, Z / X octave, C / V velocity, Esc
+/// all off. Returns true if the keys' octave changed.
+///
+/// The letters play even while a knob, fader or button has keyboard focus
+/// (those take only the arrow keys); only a focused text field would keep
+/// them, and the panel has none. Testing for any focus at all, as egui's
+/// `egui_wants_keyboard_input` does, silenced the keys after every click on
+/// a control until something else took the focus away.
+fn computer_keys(ctx: &egui::Context, live: &Live, keys: &mut KeyPresses) -> bool {
+    let typing = ctx.text_edit_focused();
+    let base = keys.base;
+    for event in ctx.input(|i| i.events.clone()) {
+        match event {
+            egui::Event::Key {
+                key,
+                pressed: true,
+                repeat: false,
+                modifiers,
+                ..
+            } if !typing && !modifiers.ctrl && !modifiers.command && !modifiers.alt => {
+                if key == egui::Key::Escape {
+                    keys.release_all(live);
+                } else if let Some(c) = letter(key) {
+                    keys.letter_down(live, c);
+                }
+            }
+            egui::Event::Key {
+                key,
+                pressed: false,
+                ..
+            } => {
+                if let Some(c) = letter(key) {
+                    keys.letter_up(live, c);
+                }
+            }
+            // Keys let go while the window was in the background never
+            // arrive, so let go of everything when it loses focus.
+            egui::Event::WindowFocused(false) => keys.release_all(live),
+            _ => {}
+        }
+    }
+    keys.base != base
 }
 
 fn letter(key: egui::Key) -> Option<char> {
@@ -144,7 +148,9 @@ impl eframe::App for App {
         fit_to_window(&ctx, panel::DESIGN, 3.0);
         let (now, dt) = ctx.input(|i| (i.time, i.stable_dt));
         self.now = now;
-        self.handle_keys(&ctx);
+        if computer_keys(&ctx, &self.shared.live, &mut self.keys) {
+            self.dirty = true;
+        }
         self.update_meter(dt);
         self.draw(ui);
         if self.dirty && self.now - self.last_save > SAVE_EVERY {
@@ -176,4 +182,100 @@ fn main() -> eframe::Result {
             Ok(Box::new(App::new()))
         }),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use poly_box_engine::keys::KeyBridge;
+    use poly_box_engine::{Patch, Synth};
+
+    fn key(key: egui::Key, pressed: bool) -> egui::Event {
+        egui::Event::Key {
+            key,
+            physical_key: None,
+            pressed,
+            repeat: false,
+            modifiers: egui::Modifiers::NONE,
+        }
+    }
+
+    /// One frame with a knob-like widget on screen (which takes focus when
+    /// `focus` is set), feeding `events` to the computer keys.
+    fn frame(
+        ctx: &egui::Context,
+        live: &Live,
+        keys: &mut KeyPresses,
+        events: Vec<egui::Event>,
+        focus: bool,
+    ) {
+        let input = egui::RawInput {
+            events,
+            ..Default::default()
+        };
+        let mut out = ctx.run_ui(input, |ui| {
+            let r = ui.interact(
+                egui::Rect::from_min_size(egui::pos2(10.0, 10.0), egui::vec2(40.0, 40.0)),
+                egui::Id::new("knob"),
+                egui::Sense::click_and_drag(),
+            );
+            if focus {
+                r.request_focus();
+            }
+            computer_keys(ui.ctx(), live, keys);
+        });
+        out.textures_delta.clear();
+    }
+
+    fn held(live: &Live, note: u8) -> bool {
+        let mut synth = Synth::new(48_000.0);
+        synth.set_block(&Patch::default());
+        let mut bridge = KeyBridge::default();
+        bridge.take_window(live, &mut synth);
+        bridge.publish(live, &synth);
+        live.is_held(note)
+    }
+
+    #[test]
+    fn the_computer_keys_still_play_after_a_control_takes_focus() {
+        let ctx = egui::Context::default();
+        let live = Live::default();
+        let mut keys = KeyPresses::default();
+        // Click a control: it takes keyboard focus, as the panel's knobs,
+        // faders and buttons do.
+        frame(&ctx, &live, &mut keys, vec![], true);
+        frame(&ctx, &live, &mut keys, vec![], false);
+        assert!(
+            ctx.egui_wants_keyboard_input(),
+            "the control should hold focus"
+        );
+        // A plays C4 all the same.
+        frame(&ctx, &live, &mut keys, vec![key(egui::Key::A, true)], false);
+        assert!(held(&live, 60));
+        frame(
+            &ctx,
+            &live,
+            &mut keys,
+            vec![key(egui::Key::A, false)],
+            false,
+        );
+        assert!(!held(&live, 60));
+    }
+
+    #[test]
+    fn letting_go_of_the_window_lets_go_of_the_keys() {
+        let ctx = egui::Context::default();
+        let live = Live::default();
+        let mut keys = KeyPresses::default();
+        frame(&ctx, &live, &mut keys, vec![key(egui::Key::A, true)], false);
+        assert!(held(&live, 60));
+        frame(
+            &ctx,
+            &live,
+            &mut keys,
+            vec![egui::Event::WindowFocused(false)],
+            false,
+        );
+        assert!(!held(&live, 60));
+    }
 }

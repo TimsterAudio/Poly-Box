@@ -1,6 +1,6 @@
 [package]
 name = "poly-box-app"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Poly Box: the instrument, as an app with its own panel and sound"
 publish = false

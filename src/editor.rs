@@ -33,7 +33,12 @@ fn letter(key: Key) -> Option<char> {
 
 fn handle_keys(ctx: &egui::Context, live: &Live, kb: &mut KeyPresses) {
     // While a value is being typed into a control, the letters are for that.
-    let typing = ctx.wants_keyboard_input();
+    // Only a text field counts: a focused slider takes no letters, and
+    // `wants_keyboard_input` (true for any focus) silenced the keys after
+    // every click on one.
+    let typing = ctx
+        .memory(|m| m.focused())
+        .is_some_and(|id| egui::text_edit::TextEditState::load(ctx, id).is_some());
     for event in ctx.input(|i| i.events.clone()) {
         match event {
             egui::Event::Key {

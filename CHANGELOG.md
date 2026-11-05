@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.1.1 – 2026-11-05
+
+### Fixed
+- The computer keys stopped playing after a click on a knob, fader or button, until a click on the on-screen keyboard brought them back. Clicking a control gives it keyboard focus (for the arrow keys), and the keys stood aside for any focus; now they stand aside only for a text field, which the panel doesn't have. The plug-in window had the same fault, fixed the same way (it still stands aside while a value is being typed into a slider).
+- Sharps showed as a box in the voice readouts (the display font has no ♯): notes now read C#4, F#3 and so on.
+
 ## 0.1.0 – 2026-11-04
 
 Commit `617aefb22859f75f8cddcae0e4f52541be3d7b9a`, release [v0.1.0](https://github.com/TimsterAudio/poly-box/releases/tag/v0.1.0).

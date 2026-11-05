@@ -1,6 +1,6 @@
 [package]
 name = "poly-box"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "A five-voice analog-style polysynth in the Box family, after the Oberheim SEM sound"
 authors = ["Timster's Audio Works"]

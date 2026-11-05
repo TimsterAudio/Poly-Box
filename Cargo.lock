@@ -2432,7 +2432,7 @@ dependencies = [
 
 [[package]]
 name = "poly-box"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "nih_plug",
  "nih_plug_egui",
@@ -2441,7 +2441,7 @@ dependencies = [
 
 [[package]]
 name = "poly-box-app"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "cpal",
  "eframe",
@@ -2454,7 +2454,7 @@ dependencies = [
 
 [[package]]
 name = "poly-box-engine"
-version = "0.1.0"
+version = "0.1.1"
 
 [[package]]
 name = "polycool"

@@ -307,7 +307,7 @@ impl KeyPresses {
 
 pub fn note_name(note: u8) -> String {
     const NAMES: [&str; 12] = [
-        "C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B",
+        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
     ];
     format!("{}{}", NAMES[note as usize % 12], note as i32 / 12 - 1)
 }
@@ -324,7 +324,7 @@ mod tests {
     #[test]
     fn note_names() {
         assert_eq!(note_name(60), "C4");
-        assert_eq!(note_name(61), "C♯4");
+        assert_eq!(note_name(61), "C#4");
         assert_eq!(note_name(24), "C1");
     }
 
